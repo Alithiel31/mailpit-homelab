@@ -1,0 +1,37 @@
+# Mailpit mutualisé : puits SMTP unique du homelab (aucun mail n'est réellement livré).
+# Tous les services qui envoient des mails (reset de mot de passe, invitations…) visent
+# <IP Tailscale de Caesura>:1025 ; les mails se lisent sur l'interface web (8025, Tailscale).
+services:
+  mailpit:
+    image: axllent/mailpit@sha256:74d609a42ec279aa63c6b4622a6fa9b5408d1ad5b1d76a1c4be40a265ce0863d  # figé le 2026-09-30
+    container_name: mailpit
+    labels:
+      - "homelab.tier=infra"
+    restart: unless-stopped
+    # Rien sur 0.0.0.0 : localhost + IP Tailscale uniquement (même schéma qu'Infisical).
+    ports:
+      - "127.0.0.1:8025:8025"
+      - "${TAILSCALE_IP:?TAILSCALE_IP manquant dans .env}:8025:8025"
+      - "127.0.0.1:1025:1025"
+      - "${TAILSCALE_IP}:1025:1025"
+    environment:
+      - TZ=Europe/Paris
+      # Persistance : les mails survivent à un redémarrage / une recréation du conteneur
+      - MP_DATA_FILE=/data/mailpit.db
+      # Purge automatique des plus anciens (ménage la carte SD)
+      - MP_MAX_MESSAGES=${MP_MAX_MESSAGES:-500}
+      # Optionnel : protéger l'interface web (fichier htpasswd monté dans le conteneur)
+      # - MP_UI_AUTH_FILE=/config/ui-auth.txt
+    volumes:
+      - mailpit-data:/data
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 128m
+
+volumes:
+  mailpit-data:
