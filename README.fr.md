@@ -10,6 +10,7 @@ Une seule instance de [Mailpit](https://mailpit.axllent.org/) joue le rôle de *
 |---|---|---|---|
 | `mailpit` | `axllent/mailpit`, épinglée par digest | `1025` (SMTP) et `8025` (interface web), liés à localhost et à `TAILSCALE_IP` uniquement | Puits SMTP + visionneuse de mails |
 
+- **Interface web** : `http://mail.caesura.internal` (Traefik + DNS interne), ou directement `http://<TAILSCALE_IP>:8025`.
 - **Persistance** : volume nommé `mailpit-data` (fichier SQLite), plafonné par `MP_MAX_MESSAGES` (500 par défaut, les plus anciens sont purgés).
 - **Pas d'authentification SMTP** : tout nœud du tailnet peut poster un mail. Acceptable sur un tailnet privé ; l'interface peut être protégée avec `MP_UI_AUTH_FILE` (ligne commentée dans `docker-compose.yml`).
 - **Image** épinglée par digest, date d'épinglage en commentaire dans le compose.
@@ -36,6 +37,8 @@ Règle : **tout service proposant un « mot de passe oublié » envoie ses mails
 Pour le nœud *Send Email* de n8n, créer une fois le credential SMTP dans l'interface avec le même hôte/port, sans authentification et SSL/TLS désactivé.
 
 ## Déploiement
+
+Nécessite le réseau externe `traefik-net` (déjà présent si Traefik tourne) pour la route `mail.caesura.internal`.
 
 ```bash
 cp .env.example .env     # renseigner TAILSCALE_IP (tailscale ip -4)
@@ -74,7 +77,7 @@ Subject: Test Mailpit
 MAIL
 ```
 
-Puis ouvrir `http://<TAILSCALE_IP>:8025` : le mail doit apparaître.
+Puis ouvrir `http://mail.caesura.internal` (ou `http://<TAILSCALE_IP>:8025`) : le mail doit apparaître.
 
 ## Notes de sécurité
 

@@ -10,6 +10,7 @@ A single [Mailpit](https://mailpit.axllent.org/) instance acting as the **one SM
 |---|---|---|---|
 | `mailpit` | `axllent/mailpit`, pinned by digest | `1025` (SMTP) and `8025` (web UI), bound to localhost and to `TAILSCALE_IP` only | SMTP sink + mail viewer |
 
+- **Web UI**: `http://mail.caesura.internal` (Traefik + internal DNS), or directly `http://<TAILSCALE_IP>:8025`.
 - **Persistence**: named volume `mailpit-data` (SQLite file), capped by `MP_MAX_MESSAGES` (default 500, oldest purged first).
 - **No authentication on SMTP**: any node of the tailnet can post a mail. Acceptable for a private tailnet; the UI can be protected with `MP_UI_AUTH_FILE` (see the commented line in `docker-compose.yml`).
 - **Image** pinned by digest, pinning date in a comment in the compose file.
@@ -36,6 +37,8 @@ Rule: **any service offering a "forgot password" flow must send through this Mai
 For n8n's *Send Email* node, create the SMTP credential once in the UI with the same host/port, no authentication and SSL/TLS off.
 
 ## Deployment
+
+Requires the external `traefik-net` network (already there if Traefik runs) for the `mail.caesura.internal` route.
 
 ```bash
 cp .env.example .env     # set TAILSCALE_IP (tailscale ip -4)
@@ -74,7 +77,7 @@ It works.
 MAIL
 ```
 
-Then open `http://<TAILSCALE_IP>:8025`: the mail must appear.
+Then open `http://mail.caesura.internal` (or `http://<TAILSCALE_IP>:8025`): the mail must appear.
 
 ## Security notes
 

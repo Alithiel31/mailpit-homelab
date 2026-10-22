@@ -7,7 +7,14 @@ services:
     container_name: mailpit
     labels:
       - "homelab.tier=infra"
+      - "traefik.enable=true"
+      - "traefik.http.routers.mailpit.entrypoints=internal"
+      - "traefik.http.routers.mailpit.rule=Host(`mail.caesura.internal`)"
+      - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
     restart: unless-stopped
+    networks:
+      - default
+      - traefik-net
     # Rien sur 0.0.0.0 : localhost + IP Tailscale uniquement (même schéma qu'Infisical).
     ports:
       - "127.0.0.1:8025:8025"
@@ -35,3 +42,7 @@ services:
 
 volumes:
   mailpit-data:
+
+networks:
+  traefik-net:
+    external: true
